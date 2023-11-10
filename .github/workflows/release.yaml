@@ -65,10 +65,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install gcc-arm-linux-gnueabihf
 
-      - name: ref-type
-        id: ref-type
-        run: cargo run --package ref-type -- --reference ${{ github.ref }}
-
       - name: package
         id: package
         env:
@@ -83,9 +79,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         with:
-          draft: false
           files: ${{ steps.package.outputs.archive }}
-          prerelease: ${{ steps.ref-type.outputs.value != 'release' }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -97,8 +93,8 @@ jobs:
             && matrix.target == 'x86_64-unknown-linux-musl'
           }}
         with:
-          draft: false
           files: CHANGELOG.md
-          prerelease: ${{ steps.ref-type.outputs.value != 'release' }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
