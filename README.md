@@ -1,3 +1,14 @@
+<!-- markdownlint-disable MD013 MD033 MD041 -->
+<div>
+  <a href="https://github.com/marccarre/ssh-to-ansible/actions">
+    <img src="https://github.com/marccarre/ssh-to-ansible/actions/workflows/ci.yaml/badge.svg" alt="build status">
+  </a>
+  <a href="https://github.com/marccarre/ssh-to-ansible/releases">
+    <img src="https://img.shields.io/github/downloads/marccarre/ssh-to-ansible/total.svg" alt="downloads">
+  </a>
+</div>
+<!-- markdownlint-enable MD013 MD033 MD041 -->
+
 # ssh-to-ansible
 
 A tool to convert a SSH configuration to an Ansible YAML inventory.
