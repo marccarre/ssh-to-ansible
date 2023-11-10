@@ -1,4 +1,3 @@
----
 rules:
   truthy:
     allowed-values: ['true', 'false']
