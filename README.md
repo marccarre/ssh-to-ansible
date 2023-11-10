@@ -1,4 +1,6 @@
-# vagrant-to-ansible
+# ssh-to-ansible
+
+A tool to convert a SSH configuration to an Ansible YAML inventory.
 
 ## Development
 
@@ -40,7 +42,7 @@ just cover
 ##### Default options
 
 ```console
-cat <<EOF | ./target/debug/v2a
+cat <<EOF | ./target/debug/s2a
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -59,7 +61,7 @@ EOF
 ##### Custom options
 
 ```console
-cat <<EOF | ./target/debug/v2a -e dev -f dev.yaml
+cat <<EOF | ./target/debug/s2a -e dev -f dev.yaml
 Host default
   HostName 127.0.0.1
   User vagrant

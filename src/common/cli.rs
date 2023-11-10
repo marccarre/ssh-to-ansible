@@ -3,7 +3,7 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(author="Marc Carré", version, about="Tool to convert a Vagrant SSH configuration to an Ansible inventory YAML", long_about = None)]
+#[command(author="Marc Carré", version, about="A tool to convert a SSH configuration to an Ansible YAML inventory.", long_about = None)]
 pub struct Arguments {
     #[clap(flatten)]
     pub verbose: Verbosity<WarnLevel>,
