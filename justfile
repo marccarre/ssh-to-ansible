@@ -12,7 +12,7 @@ setup: setup-coverage
 
 lint:
     pre-commit run --all-files
-    cargo clippy
+    cargo clippy --all --all-targets
     cargo clippy --fix
 
 cover:
