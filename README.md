@@ -42,7 +42,7 @@ just cover
 ##### Default options
 
 ```console
-cat <<EOF | ./target/debug/s2a
+$ cat <<EOF | ./target/debug/s2a
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -56,12 +56,21 @@ Host default
   PubkeyAcceptedKeyTypes +ssh-rsa
   HostKeyAlgorithms +ssh-rsa
 EOF
+
+$ cat local.yaml
+local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
 ```
 
 ##### Custom options
 
 ```console
-cat <<EOF | ./target/debug/s2a -e dev -f dev.yaml
+$ cat <<EOF | ./target/debug/s2a -e dev -f dev.yaml
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -75,4 +84,13 @@ Host default
   PubkeyAcceptedKeyTypes +ssh-rsa
   HostKeyAlgorithms +ssh-rsa
 EOF
+
+$ cat dev.yaml
+dev:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
 ```
