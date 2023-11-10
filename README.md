@@ -166,3 +166,19 @@ dev:
       ansible_user: vagrant
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
 ```
+
+### Release
+
+```console
+export VERSION="X.Y.Z"  # N.B.: no "v" prefix!
+git tag -a "${VERSION}" -m "${VERSION}"
+git push origin --tags
+```
+
+N.B.: in case of release job failure, and a re-release, the tag can be deleted
+this way (warning: bad practice to delete tags):
+
+```console
+git tag -d "${VERSION}"
+git push origin --delete "${VERSION}"
+```
