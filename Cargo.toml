@@ -10,6 +10,12 @@ readme = "README.md"
 keywords = ["command-line", "ssh", "configuration", "ansible", "inventory", "vagrant", "development", "utility"]
 license = "Apache-2.0"
 edition = "2021"
+include = [
+    "README.md",
+    "LICENSE.txt",
+    "**/*.rs",
+    "Cargo.toml",
+]
 
 [[bin]]
 name = "s2a"
