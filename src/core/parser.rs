@@ -1,8 +1,27 @@
 use crate::common::error::AppError;
-use crate::core::ansible::{HostParams, Hosts};
+use crate::core::ansible::{HostParams, Hosts, Inventory};
 use ssh2_config::{Host, ParseRule, SshConfig};
-use std::io::BufRead;
+use std::io::{BufRead, Write};
+use tracing::info;
 
+/// Parse the provided input SSH config, convert it to an Ansible YAML
+/// inventory, named after the provided environment, and write this YAML
+/// inventory to the provided output.
+pub fn parse_and_serialise_as_yaml(
+    environment: &str,
+    input: &mut impl BufRead,
+    output: &mut impl Write,
+) -> Result<(), AppError> {
+    let hosts = parse(input)?;
+    info!("Successfully parsed SSH config: {:?}", hosts);
+    let inventory = Inventory::new(environment, hosts);
+    info!("Successfully generated inventory: {:?}", inventory);
+    serde_yaml::to_writer(output, &inventory)?;
+    info!("Successfully serialised inventory as YAML",);
+    Ok(())
+}
+
+/// Parse the provided SSH config into a collection of `Hosts`.
 pub fn parse(reader: &mut impl BufRead) -> Result<Hosts, AppError> {
     let config = SshConfig::default().parse(reader, ParseRule::STRICT)?;
     let ssh_hosts: Vec<&Host> = ssh_hosts_from(&config);
@@ -13,7 +32,8 @@ pub fn parse(reader: &mut impl BufRead) -> Result<Hosts, AppError> {
     Ok(hosts)
 }
 
-/// Get actual hosts from the provided SSH config.
+/// Get actual hosts from the provided SSH config,
+/// i.e. remove wildcard ('*') host.
 fn ssh_hosts_from(config: &SshConfig) -> Vec<&Host> {
     config
         .get_hosts()
@@ -36,14 +56,14 @@ fn host_nickname(pattern: &[ssh2_config::HostClause]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::parse;
+    use super::{parse, parse_and_serialise_as_yaml};
     use crate::common::error::AppError;
     use crate::core::ansible::HostParams;
+    use std::io::BufWriter;
     use std::path::PathBuf;
 
-    #[test]
-    fn parse_vagrant_ssh_config() -> Result<(), AppError> {
-        let ssh_config = r###"Host default
+    fn sample_ssh_config() -> String {
+        r###"Host default
   HostName 127.0.0.1
   User vagrant
   Port 50022
@@ -54,9 +74,48 @@ mod tests {
   IdentitiesOnly yes
   LogLevel FATAL
   PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa"###;
-        let mut buf_read = ssh_config.as_bytes();
-        let hosts = parse(&mut buf_read)?;
+  HostKeyAlgorithms +ssh-rsa"###
+            .to_string()
+    }
+
+    #[test]
+    fn parse_ssh_config_and_serialise_as_yaml() -> Result<(), AppError> {
+        // Given:
+        let ssh_config = sample_ssh_config();
+        let mut input = ssh_config.as_bytes();
+        let mut output = BufWriter::new(Vec::new());
+
+        // When:
+        parse_and_serialise_as_yaml("unit-test", &mut input, &mut output)?;
+
+        // Then:
+        let bytes = output.buffer();
+        let yaml = String::from_utf8(bytes.to_vec())?;
+
+        assert_eq!(
+            yaml,
+            r###"unit-test:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+"###
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn parse_ssh_config() -> Result<(), AppError> {
+        // Given:
+        let ssh_config = sample_ssh_config();
+        let mut input = ssh_config.as_bytes();
+
+        // When:
+        let hosts = parse(&mut input)?;
+
+        // Then:
         assert_eq!(hosts.len(), 1);
         assert!(hosts.contains_key("default"));
         let host_params = hosts

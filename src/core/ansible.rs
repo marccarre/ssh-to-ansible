@@ -8,9 +8,9 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn new(name: String, hosts: Hosts) -> Inventory {
+    pub fn new(name: &str, hosts: Hosts) -> Inventory {
         Inventory {
-            groups: BTreeMap::from([(name, Group::new(hosts))]),
+            groups: BTreeMap::from([(name.to_owned(), Group::new(hosts))]),
         }
     }
 }
@@ -81,10 +81,26 @@ mod tests {
     use serde_yaml;
     use std::collections::BTreeMap;
 
+    fn sample_host_params() -> HostParams {
+        HostParams {
+            ansible_host: Some("127.0.0.1".to_string()),
+            ansible_port: Some(50022u16),
+            ansible_user: Some("vagrant".to_string()),
+            ansible_ssh_private_key_file: None,
+            ansible_ssh_common_args: None,
+            ansible_ssh_extra_args: None,
+        }
+    }
+
     #[test]
     fn serialize_host_params_to_yaml() -> Result<(), serde_yaml::Error> {
+        // Given:
         let host_params = sample_host_params();
+
+        // When:
         let yaml = serde_yaml::to_string(&host_params)?;
+
+        // Then:
         assert_eq!(
             yaml,
             "ansible_host: 127.0.0.1\n\
@@ -96,9 +112,14 @@ mod tests {
 
     #[test]
     fn serialize_inventory_to_yaml() -> Result<(), serde_yaml::Error> {
+        // Given:
         let hosts: Hosts = BTreeMap::from([("default".to_string(), sample_host_params())]);
-        let inventory = Inventory::new("local".to_string(), hosts);
+        let inventory = Inventory::new("local", hosts);
+
+        // When:
         let yaml = serde_yaml::to_string(&inventory)?;
+
+        // Then:
         assert_eq!(
             yaml,
             r###"local:
@@ -110,16 +131,5 @@ mod tests {
 "###
         );
         Ok(())
-    }
-
-    fn sample_host_params() -> HostParams {
-        HostParams {
-            ansible_host: Some("127.0.0.1".to_string()),
-            ansible_port: Some(50022u16),
-            ansible_user: Some("vagrant".to_string()),
-            ansible_ssh_private_key_file: None,
-            ansible_ssh_common_args: None,
-            ansible_ssh_extra_args: None,
-        }
     }
 }

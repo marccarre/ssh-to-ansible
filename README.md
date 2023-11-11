@@ -113,6 +113,9 @@ just cover
 
 ##### Default options
 
+By default, `s2a` defaults the environment to be `local`, reads from `stdin` and
+writes to `stdout`:
+
 ```console
 $ cat <<EOF | ./target/debug/s2a
 Host default
@@ -129,7 +132,6 @@ Host default
   HostKeyAlgorithms +ssh-rsa
 EOF
 
-$ cat local.yaml
 local:
   hosts:
     default:
@@ -139,10 +141,10 @@ local:
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
 ```
 
-##### Custom options
+##### Configure the Ansible inventory's environment
 
 ```console
-$ cat <<EOF | ./target/debug/s2a -e dev -f dev.yaml
+$ cat <<EOF | ./target/debug/s2a -e dev
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -157,8 +159,64 @@ Host default
   HostKeyAlgorithms +ssh-rsa
 EOF
 
-$ cat dev.yaml
 dev:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+```
+
+##### Read from input file instead of `stdin`
+
+```console
+$ cat <<EOF > ssh_config
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
+$ ./target/debug/s2a -i ssh_config
+
+local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+```
+
+##### Write to output file instead of `stdout`
+
+```console
+$ cat <<EOF | ./target/debug/s2a -o local.yaml
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
+$ cat local.yaml
+local:
   hosts:
     default:
       ansible_host: 127.0.0.1
