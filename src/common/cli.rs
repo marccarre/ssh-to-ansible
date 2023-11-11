@@ -86,3 +86,126 @@ impl Arguments {
         Ok(output)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Arguments;
+    use crate::common::error::AppError;
+    use clap::Parser;
+    use std::fs::{self, File};
+    use std::io::{BufReader, Read, Write};
+
+    #[test]
+    fn validate_defaults() {
+        let args = Arguments::parse_from([""]);
+        let result = args.validate();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_non_existing_input_file() {
+        let args = Arguments::parse_from(["", "-i", "non-existing-ssh-config-file"]);
+        let result = args.validate();
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert_eq!(err.to_string(), "Invalid user input for arg \"-i/--input-filepath\". Reason: the provided input filepath does not exist or cannot be accessed");
+    }
+
+    #[test]
+    fn validate_invalid_input_file() {
+        let args = Arguments::parse_from(["", "-i", "./target"]);
+        let result = args.validate();
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert_eq!(err.to_string(), "Invalid user input for arg \"-i/--input-filepath\". Reason: the provided input filepath is not a file");
+    }
+
+    #[test]
+    fn validate_valid_output_file() -> Result<(), AppError> {
+        fs::create_dir_all("./target/test")?;
+        let args =
+            Arguments::parse_from(["", "-o", "./target/test/validate_valid_output_file.yaml"]);
+        let result = args.validate();
+        assert!(result.is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn validate_invalid_output_file() {
+        let args = Arguments::parse_from(["", "-o", "./target"]);
+        let result = args.validate();
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert_eq!(err.to_string(), "Invalid user input for arg \"-o/--output-filepath\". Reason: the provided output filepath is not a file");
+    }
+
+    #[test]
+    fn input_from_file() -> Result<(), AppError> {
+        // Given:
+        let args = Arguments::parse_from(["", "-i", "./test/sample_ssh_config"]);
+        args.validate()?;
+
+        // When:
+        let mut input_file = args.input()?;
+
+        // Then:
+        let mut input_string = String::new();
+        input_file.read_to_string(&mut input_string)?;
+        assert_eq!(input_string, sample_ssh_config());
+        Ok(())
+    }
+
+    fn sample_ssh_config() -> String {
+        r###"Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+"###
+        .to_string()
+    }
+
+    #[test]
+    fn output_to_file() -> Result<(), AppError> {
+        // Given:
+        let output_filepath = "./target/test/output_to_file.yaml";
+        let args = Arguments::parse_from(["", "-o", output_filepath]);
+        args.validate()?;
+
+        // When:
+        let mut output_file = args.output()?;
+        output_file.write_all(sample_inventory().as_bytes())?;
+        output_file.flush()?;
+
+        // Then:
+        let output_string = read_file(output_filepath)?;
+        assert_eq!(output_string, sample_inventory());
+        Ok(())
+    }
+
+    fn sample_inventory() -> String {
+        r###"local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+"###
+        .to_string()
+    }
+
+    fn read_file(filepath: &str) -> Result<String, AppError> {
+        let file = File::open(filepath)?;
+        let mut buf_reader = BufReader::new(file);
+        let mut contents = String::new();
+        buf_reader.read_to_string(&mut contents)?;
+        Ok(contents)
+    }
+}
