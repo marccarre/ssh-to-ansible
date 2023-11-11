@@ -1,5 +1,8 @@
 <!-- markdownlint-disable MD013 MD033 MD041 -->
 <div>
+  <a href="https://crates.io/crates/ssh-to-ansible">
+    <img src="https://img.shields.io/crates/v/ssh-to-ansible.svg" alt="crates.io version">
+  </a>
   <a href="https://github.com/marccarre/ssh-to-ansible/actions">
     <img src="https://github.com/marccarre/ssh-to-ansible/actions/workflows/ci.yaml/badge.svg" alt="build status" />
   </a>
@@ -234,6 +237,9 @@ local:
 export VERSION="X.Y.Z"  # N.B.: no "v" prefix!
 git tag -a "${VERSION}" -m "${VERSION}"
 git push origin --tags
+cargo login
+cargo publish --dry-run
+cargo publish
 ```
 
 N.B.: in case of release job failure, and a re-release, the tag can be deleted
