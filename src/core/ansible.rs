@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf};
+use tracing::debug;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Inventory {
@@ -59,6 +60,7 @@ pub struct HostParams {
 
 impl HostParams {
     pub fn new(params: &ssh2_config::HostParams) -> HostParams {
+        debug!("Provided host params: {:?}", params);
         HostParams {
             ansible_host: params.host_name.clone(),
             ansible_port: params.port,
