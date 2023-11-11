@@ -1,6 +1,6 @@
 [package]
 name = "ssh-to-ansible"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Marc Carré <carre.marc@gmail.com>"]
 categories = ["command-line-utilities", "development-tools", "parsing"]
 description = "A tool to convert a SSH configuration to an Ansible YAML inventory."
