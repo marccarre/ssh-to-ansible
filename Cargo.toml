@@ -13,7 +13,6 @@ edition = "2021"
 [[bin]]
 name = "s2a"
 path = "src/main.rs"
-test = false
 
 [profile.release]
 lto = true
