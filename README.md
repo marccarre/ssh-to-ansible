@@ -21,13 +21,11 @@ A tool to convert a SSH configuration to an Ansible YAML inventory.
 
 ## Usage
 
-Pipe any SSH configuration to `s2a`'s standard input, specifying as CLI
-arguments:
+Provide any SSH configuration as an input to `s2a`, either via `stdin` or as an
+input file, optionally define the name of the environment (`-e`/`--environment`)
+for the Ansible inventory, and optionally provide an output YAML file.
 
-- the name of this environment (`-e`/`--environment`), and
-- the path of the YAML file to generate (`-f`/`--filepath`).
-
-This works with any well-formed SSH configuration, e.g.:
+`s2a` works with any well-formed SSH configuration, e.g.:
 
 - `cat ~/.ssh/config | s2a`
 - `vagrant ssh-config | s2a`
