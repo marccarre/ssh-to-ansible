@@ -1,0 +1,50 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  coverage: # ------------------------------------------------------------------
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - id: install-llvm-tools-preview-and-grcov
+        name: install llvm-tools-preview and grcov
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install grcov
+      - uses: Swatinem/rust-cache@v2
+      - id: build
+        name: build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build # required for end-to-end tests in main.rs
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: -Cinstrument-coverage
+          RUSTDOCFLAGS: -Cinstrument-coverage
+          LLVM_PROFILE_FILE: cargo-test-%p-%m.profraw
+      - id: test
+        name: test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-fail-fast
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: -Cinstrument-coverage
+          RUSTDOCFLAGS: -Cinstrument-coverage
+          LLVM_PROFILE_FILE: cargo-test-%p-%m.profraw
+      - id: coverage
+        name: coverage
+        run: |
+          mkdir -p target/coverage/
+          grcov . --binary-path ./target/debug/deps/ -s . -t lcov --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/coverage/tests.lcov
+      - id: coverage-report
+        name: coverage-report
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: target/coverage/tests.lcov

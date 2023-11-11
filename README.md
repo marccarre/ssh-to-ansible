@@ -1,10 +1,13 @@
 <!-- markdownlint-disable MD013 MD033 MD041 -->
 <div>
   <a href="https://github.com/marccarre/ssh-to-ansible/actions">
-    <img src="https://github.com/marccarre/ssh-to-ansible/actions/workflows/ci.yaml/badge.svg" alt="build status">
+    <img src="https://github.com/marccarre/ssh-to-ansible/actions/workflows/ci.yaml/badge.svg" alt="build status" />
   </a>
   <a href="https://github.com/marccarre/ssh-to-ansible/releases">
-    <img src="https://img.shields.io/github/downloads/marccarre/ssh-to-ansible/total.svg" alt="downloads">
+    <img src="https://img.shields.io/github/downloads/marccarre/ssh-to-ansible/total.svg" alt="downloads" />
+  </a>
+  <a href='https://coveralls.io/github/marccarre/ssh-to-ansible?branch=main'>
+    <img src='https://coveralls.io/repos/github/marccarre/ssh-to-ansible/badge.svg?branch=main' alt='Coverage Status' />
   </a>
 </div>
 <!-- markdownlint-enable MD013 MD033 MD041 -->
