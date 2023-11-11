@@ -91,9 +91,12 @@ impl Arguments {
 mod tests {
     use super::Arguments;
     use crate::common::error::AppError;
+    use crate::common::testing::utilities::{
+        read_file, sample_ansible_inventory, temp_file, temp_filepath, SAMPLE_SSH_CONFIG,
+    };
     use clap::Parser;
-    use std::fs::{self, File};
-    use std::io::{BufReader, Read, Write};
+    use std::fs;
+    use std::io::{Read, Write};
 
     #[test]
     fn validate_defaults() {
@@ -142,7 +145,8 @@ mod tests {
     #[test]
     fn input_from_file() -> Result<(), AppError> {
         // Given:
-        let args = Arguments::parse_from(["", "-i", "./test/sample_ssh_config"]);
+        let (dir, input_filepath) = temp_file("test_input_from_file", SAMPLE_SSH_CONFIG)?;
+        let args = Arguments::parse_from(["", "-i", &input_filepath.to_string_lossy()]);
         args.validate()?;
 
         // When:
@@ -151,61 +155,28 @@ mod tests {
         // Then:
         let mut input_string = String::new();
         input_file.read_to_string(&mut input_string)?;
-        assert_eq!(input_string, sample_ssh_config());
+        assert_eq!(input_string, SAMPLE_SSH_CONFIG);
+        dir.close()?; // clean-up.
         Ok(())
-    }
-
-    fn sample_ssh_config() -> String {
-        r###"Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa
-"###
-        .to_string()
     }
 
     #[test]
     fn output_to_file() -> Result<(), AppError> {
         // Given:
-        let output_filepath = "./target/test/output_to_file.yaml";
-        let args = Arguments::parse_from(["", "-o", output_filepath]);
+        let sample_inventory = sample_ansible_inventory("unit-test");
+        let (dir, output_filepath) = temp_filepath("test_output_to_file")?;
+        let args = Arguments::parse_from(["", "-o", &output_filepath.to_string_lossy()]);
         args.validate()?;
 
         // When:
         let mut output_file = args.output()?;
-        output_file.write_all(sample_inventory().as_bytes())?;
+        output_file.write_all(sample_inventory.as_bytes())?;
         output_file.flush()?;
 
         // Then:
-        let output_string = read_file(output_filepath)?;
-        assert_eq!(output_string, sample_inventory());
+        let output_string = read_file(&output_filepath)?;
+        assert_eq!(output_string, sample_inventory);
+        dir.close()?; // clean-up.
         Ok(())
-    }
-
-    fn sample_inventory() -> String {
-        r###"local:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-"###
-        .to_string()
-    }
-
-    fn read_file(filepath: &str) -> Result<String, AppError> {
-        let file = File::open(filepath)?;
-        let mut buf_reader = BufReader::new(file);
-        let mut contents = String::new();
-        buf_reader.read_to_string(&mut contents)?;
-        Ok(contents)
     }
 }

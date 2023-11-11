@@ -58,59 +58,33 @@ fn host_nickname(pattern: &[ssh2_config::HostClause]) -> String {
 mod tests {
     use super::{parse, parse_and_serialise_as_yaml};
     use crate::common::error::AppError;
+    use crate::common::testing::utilities::{sample_ansible_inventory, SAMPLE_SSH_CONFIG};
     use crate::core::ansible::HostParams;
     use std::io::BufWriter;
     use std::path::PathBuf;
 
-    fn sample_ssh_config() -> String {
-        r###"Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa"###
-            .to_string()
-    }
-
     #[test]
     fn parse_ssh_config_and_serialise_as_yaml() -> Result<(), AppError> {
         // Given:
-        let ssh_config = sample_ssh_config();
-        let mut input = ssh_config.as_bytes();
+        let mut input = SAMPLE_SSH_CONFIG.as_bytes();
         let mut output = BufWriter::new(Vec::new());
+        let environment = "unit-test";
 
         // When:
-        parse_and_serialise_as_yaml("unit-test", &mut input, &mut output)?;
+        parse_and_serialise_as_yaml(environment, &mut input, &mut output)?;
 
         // Then:
         let bytes = output.buffer();
         let yaml = String::from_utf8(bytes.to_vec())?;
 
-        assert_eq!(
-            yaml,
-            r###"unit-test:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
-"###
-        );
+        assert_eq!(yaml, sample_ansible_inventory(environment));
         Ok(())
     }
 
     #[test]
     fn parse_ssh_config() -> Result<(), AppError> {
         // Given:
-        let ssh_config = sample_ssh_config();
-        let mut input = ssh_config.as_bytes();
+        let mut input = SAMPLE_SSH_CONFIG.as_bytes();
 
         // When:
         let hosts = parse(&mut input)?;
