@@ -32,10 +32,15 @@ This works with any well-formed SSH configuration, e.g.:
 - `cat ~/.ssh/config | s2a`
 - `vagrant ssh-config | s2a`
 
-### Example
+### Examples
+
+#### Default options
+
+By default, `s2a` defaults the environment to be `local`, reads from `stdin` and
+writes to `stdout`:
 
 ```console
-$ cat <<EOF | s2a -e dev -f dev.yaml
+$ cat <<EOF | s2a
 Host default
   HostName 127.0.0.1
   User vagrant
@@ -50,8 +55,91 @@ Host default
   HostKeyAlgorithms +ssh-rsa
 EOF
 
-$ cat dev.yaml
+local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+```
+
+#### Configure the Ansible inventory's environment
+
+```console
+$ cat <<EOF | s2a -e dev
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
 dev:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+```
+
+#### Read from input file instead of `stdin`
+
+```console
+$ cat <<EOF > ssh_config
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
+$ s2a -i ssh_config
+
+local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+```
+
+#### Write to output file instead of `stdout`
+
+```console
+$ cat <<EOF | s2a -o local.yaml
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
+$ cat local.yaml
+local:
   hosts:
     default:
       ansible_host: 127.0.0.1
@@ -70,13 +158,22 @@ A tool to convert a SSH configuration to an Ansible YAML inventory.
 Usage: s2a [OPTIONS]
 
 Options:
-  -v, --verbose...                 More output per occurrence
-  -q, --quiet...                   Less output per occurrence
+  -v, --verbose...
+          More output per occurrence
+  -q, --quiet...
+          Less output per occurrence
       --debug
-  -e, --environment <ENVIRONMENT>  Name of the environment to generate [default: local]
-  -f, --filepath <FILEPATH>        Path of the Ansible inventory file to generate [default: local.yaml]
-  -h, --help                       Print help
-  -V, --version                    Print version
+
+  -e, --environment <ENVIRONMENT>
+          Name of the environment to generate [default: local]
+  -i, --input-filepath <INPUT_FILEPATH>
+          Path of the input SSH configuration to parse [default: stdin]
+  -o, --output-filepath <OUTPUT_FILEPATH>
+          Path of the output Ansible inventory file to generate [default: stdout]
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 <!-- markdownlint-enable MD013 -->
 
@@ -113,122 +210,6 @@ cargo test
 
 ```console
 just cover
-```
-
-#### End-to-end tests
-
-##### Default options
-
-By default, `s2a` defaults the environment to be `local`, reads from `stdin` and
-writes to `stdout`:
-
-```console
-$ cat <<EOF | ./target/debug/s2a
-Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa
-EOF
-
-local:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
-```
-
-##### Configure the Ansible inventory's environment
-
-```console
-$ cat <<EOF | ./target/debug/s2a -e dev
-Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa
-EOF
-
-dev:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
-```
-
-##### Read from input file instead of `stdin`
-
-```console
-$ cat <<EOF > ssh_config
-Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa
-EOF
-
-$ ./target/debug/s2a -i ssh_config
-
-local:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
-```
-
-##### Write to output file instead of `stdout`
-
-```console
-$ cat <<EOF | ./target/debug/s2a -o local.yaml
-Host default
-  HostName 127.0.0.1
-  User vagrant
-  Port 50022
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
-  IdentitiesOnly yes
-  LogLevel FATAL
-  PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa
-EOF
-
-$ cat local.yaml
-local:
-  hosts:
-    default:
-      ansible_host: 127.0.0.1
-      ansible_port: 50022
-      ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
 ```
 
 ### Release
