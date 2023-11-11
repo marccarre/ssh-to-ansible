@@ -102,9 +102,7 @@ mod tests {
                 ansible_host: Some("127.0.0.1".to_string()),
                 ansible_port: Some(50022u16),
                 ansible_user: Some("vagrant".to_string()),
-                ansible_ssh_private_key_file: Some(PathBuf::from(
-                    "/Users/me/.vagrant/machines/default/qemu/private_key"
-                )),
+                ansible_ssh_private_key_file: Some(PathBuf::from("/path/to/private_key")),
                 ansible_ssh_common_args: None, // Not supported for now.
                 ansible_ssh_extra_args: None,  // Not supported for now.
             }

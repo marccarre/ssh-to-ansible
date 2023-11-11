@@ -12,7 +12,7 @@ pub mod utilities {
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentityFile /path/to/private_key
   IdentitiesOnly yes
   LogLevel FATAL
   PubkeyAcceptedKeyTypes +ssh-rsa
@@ -26,7 +26,7 @@ pub mod utilities {
       ansible_host: 127.0.0.1
       ansible_port: 50022
       ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_private_key_file: /path/to/private_key
 "###
         )
     }
