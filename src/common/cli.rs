@@ -12,9 +12,6 @@ pub struct Arguments {
     #[clap(flatten)]
     pub verbose: Verbosity<WarnLevel>,
 
-    #[arg(long, default_value_t = false)]
-    pub debug: bool,
-
     /// Name of the environment to generate.
     #[arg(short, long, default_value_t = String::from("local"))]
     pub environment: String,
