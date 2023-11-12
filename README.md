@@ -29,6 +29,7 @@ for the Ansible inventory, and optionally provide an output YAML file.
 By default, `s2a` defaults the environment to be `local`, reads from `stdin` and
 writes to `stdout`:
 
+<!-- markdownlint-disable MD013 -->
 ```console
 $ cat <<EOF | s2a
 Host default
@@ -52,10 +53,13 @@ local:
       ansible_port: 50022
       ansible_user: vagrant
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 ```
+<!-- markdownlint-enable MD013 -->
 
 #### Configure the Ansible inventory's environment
 
+<!-- markdownlint-disable MD013 -->
 ```console
 $ cat <<EOF | s2a -e dev
 Host default
@@ -79,10 +83,13 @@ dev:
       ansible_port: 50022
       ansible_user: vagrant
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 ```
+<!-- markdownlint-enable MD013 -->
 
 #### Read from input file instead of `stdin`
 
+<!-- markdownlint-disable MD013 -->
 ```console
 $ cat <<EOF > ssh_config
 Host default
@@ -108,10 +115,13 @@ local:
       ansible_port: 50022
       ansible_user: vagrant
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 ```
+<!-- markdownlint-enable MD013 -->
 
 #### Write to output file instead of `stdout`
 
+<!-- markdownlint-disable MD013 -->
 ```console
 $ cat <<EOF | s2a -o local.yaml
 Host default
@@ -136,7 +146,9 @@ local:
       ansible_port: 50022
       ansible_user: vagrant
       ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 ```
+<!-- markdownlint-enable MD013 -->
 
 ### Help
 
