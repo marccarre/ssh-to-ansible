@@ -27,6 +27,7 @@ pub mod utilities {
       ansible_port: 50022
       ansible_user: vagrant
       ansible_ssh_private_key_file: /path/to/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 "#
         )
     }
