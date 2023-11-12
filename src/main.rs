@@ -1,6 +1,9 @@
 mod common;
 mod core;
 
+#[macro_use]
+extern crate lazy_static;
+
 use crate::common::cli;
 use crate::common::error::AppError;
 use crate::core::parser::parse_and_serialise_as_yaml;

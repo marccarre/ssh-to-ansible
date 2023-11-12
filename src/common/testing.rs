@@ -5,29 +5,30 @@ pub mod utilities {
     use std::{fs::File, io::BufReader};
     use tempfile::{tempdir, TempDir};
 
-    pub const SAMPLE_SSH_CONFIG: &str = r###"Host default
+    pub const SAMPLE_SSH_CONFIG: &str = r#"Host default
   HostName 127.0.0.1
   User vagrant
   Port 50022
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   PasswordAuthentication no
-  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentityFile /path/to/private_key
   IdentitiesOnly yes
   LogLevel FATAL
   PubkeyAcceptedKeyTypes +ssh-rsa
-  HostKeyAlgorithms +ssh-rsa"###;
+  HostKeyAlgorithms +ssh-rsa"#;
 
     pub fn sample_ansible_inventory(environment: &str) -> String {
         format!(
-            r###"{environment}:
+            r#"{environment}:
   hosts:
     default:
       ansible_host: 127.0.0.1
       ansible_port: 50022
       ansible_user: vagrant
-      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
-"###
+      ansible_ssh_private_key_file: /path/to/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+"#
         )
     }
 

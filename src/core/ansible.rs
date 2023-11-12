@@ -1,33 +1,37 @@
+use crate::core::ssh_config::{Field, SshConfig};
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, path::PathBuf};
+use std::collections::BTreeMap;
 use tracing::debug;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Inventory {
     #[serde(flatten)]
-    groups: BTreeMap<String, Group>,
+    groups: BTreeMap<String, Hosts>,
 }
 
 impl Inventory {
-    pub fn new(name: &str, hosts: Hosts) -> Inventory {
+    pub fn new(name: &str, ssh_configs: &[SshConfig]) -> Inventory {
         Inventory {
-            groups: BTreeMap::from([(name.to_owned(), Group::new(hosts))]),
+            groups: BTreeMap::from([(name.to_owned(), Hosts::new(ssh_configs))]),
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Group {
-    hosts: Hosts,
+pub struct Hosts {
+    hosts: BTreeMap<String, HostParams>,
 }
 
-impl Group {
-    fn new(hosts: Hosts) -> Group {
-        Group { hosts }
+impl Hosts {
+    pub fn new(ssh_configs: &[SshConfig]) -> Hosts {
+        Hosts {
+            hosts: ssh_configs
+                .iter()
+                .map(|ssh_config| (ssh_config.host.to_owned(), HostParams::new(ssh_config)))
+                .collect::<BTreeMap<String, HostParams>>(),
+        }
     }
 }
-
-pub type Hosts = BTreeMap<String, HostParams>;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// HostParams groups all the Ansible inventory parameters for Ansible to connect to this host.
@@ -47,7 +51,7 @@ pub struct HostParams {
 
     /// Private key file used by SSH. Useful if using multiple keys and you do not want to use SSH agent.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ansible_ssh_private_key_file: Option<PathBuf>,
+    pub ansible_ssh_private_key_file: Option<String>,
 
     /// This setting is always appended to the default command line for sftp, scp, and ssh. Useful to configure a ProxyCommand for a certain host (or group).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,27 +63,42 @@ pub struct HostParams {
 }
 
 impl HostParams {
-    pub fn new(params: &ssh2_config::HostParams) -> HostParams {
-        debug!("Provided host params: {:?}", params);
+    pub fn new(ssh_config: &SshConfig) -> HostParams {
+        debug!("Provided SSH config: {:?}", ssh_config);
+        let mut fields = ssh_config.fields.clone();
+        let ansible_host = fields.remove(&Field::HostName);
+        let ansible_port = fields
+            .remove(&Field::Port)
+            .map(|s| s.parse::<u16>().expect("an integer between 0 and 65535"));
+        let ansible_user = fields.remove(&Field::User);
+        let ansible_ssh_private_key_file = fields.remove(&Field::IdentityFile);
+        let ansible_ssh_common_args = fields.remove(&Field::ProxyCommand);
+        let ansible_ssh_extra_args = if fields.is_empty() {
+            None
+        } else {
+            Some(
+                fields
+                    .into_iter()
+                    .map(|(k, v)| format!("-o {k}={v}"))
+                    .collect::<Vec<String>>()
+                    .join(" "),
+            )
+        };
         HostParams {
-            ansible_host: params.host_name.clone(),
-            ansible_port: params.port,
-            ansible_user: params.user.clone(),
-            ansible_ssh_private_key_file: params.identity_file.clone().map(|paths| {
-                paths
-                    .first()
-                    .cloned()
-                    .expect("option of IdentityFile paths to contain at least 1 path")
-            }), // Only support 1 SSH key.
-            ansible_ssh_common_args: None, // Not supported for now.
-            ansible_ssh_extra_args: None,  // Not supported for now.
+            ansible_host,
+            ansible_port,
+            ansible_user,
+            ansible_ssh_private_key_file,
+            ansible_ssh_common_args,
+            ansible_ssh_extra_args,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{HostParams, Hosts, Inventory};
+    use super::{HostParams, Inventory};
+    use crate::core::ssh_config::{Field, SshConfig};
     use serde_yaml;
     use std::collections::BTreeMap;
 
@@ -88,7 +107,7 @@ mod tests {
             ansible_host: Some("127.0.0.1".to_string()),
             ansible_port: Some(50022u16),
             ansible_user: Some("vagrant".to_string()),
-            ansible_ssh_private_key_file: None,
+            ansible_ssh_private_key_file: Some("/path/to/private_key".to_string()),
             ansible_ssh_common_args: None,
             ansible_ssh_extra_args: None,
         }
@@ -107,7 +126,8 @@ mod tests {
             yaml,
             "ansible_host: 127.0.0.1\n\
             ansible_port: 50022\n\
-            ansible_user: vagrant\n"
+            ansible_user: vagrant\n\
+            ansible_ssh_private_key_file: /path/to/private_key\n"
         );
         Ok(())
     }
@@ -115,8 +135,19 @@ mod tests {
     #[test]
     fn serialize_inventory_to_yaml() -> Result<(), serde_yaml::Error> {
         // Given:
-        let hosts: Hosts = BTreeMap::from([("default".to_string(), sample_host_params())]);
-        let inventory = Inventory::new("local", hosts);
+        let ssh_config = SshConfig {
+            host: "default".to_string(),
+            fields: BTreeMap::from([
+                (Field::HostName, "127.0.0.1".to_string()),
+                (Field::User, "vagrant".to_string()),
+                (Field::Port, "50022".to_string()),
+                (Field::IdentityFile, "/path/to/private_key".to_string()),
+                (Field::StrictHostKeyChecking, "no".to_string()),
+                (Field::PasswordAuthentication, "no".to_string()),
+            ]),
+        };
+        let ssh_configs = Vec::from([ssh_config]);
+        let inventory = Inventory::new("local", &ssh_configs);
 
         // When:
         let yaml = serde_yaml::to_string(&inventory)?;
@@ -124,13 +155,15 @@ mod tests {
         // Then:
         assert_eq!(
             yaml,
-            r###"local:
+            r#"local:
   hosts:
     default:
       ansible_host: 127.0.0.1
       ansible_port: 50022
       ansible_user: vagrant
-"###
+      ansible_ssh_private_key_file: /path/to/private_key
+      ansible_ssh_extra_args: -o PasswordAuthentication=no -o StrictHostKeyChecking=no
+"#
         );
         Ok(())
     }
