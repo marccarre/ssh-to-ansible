@@ -164,8 +164,6 @@ Options:
           More output per occurrence
   -q, --quiet...
           Less output per occurrence
-      --debug
-
   -e, --environment <ENVIRONMENT>
           Name of the environment to generate [default: local]
   -i, --input-filepath <INPUT_FILEPATH>

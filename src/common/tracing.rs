@@ -11,16 +11,12 @@ pub fn initialise(args: &Arguments) {
         log::Level::Trace => Level::TRACE,
     };
 
-    if args.debug {
-        console_subscriber::init();
-    } else {
-        let subscriber = FmtSubscriber::builder()
-            .json()
-            .with_max_level(level)
-            .with_thread_ids(true)
-            .finish();
-        tracing::subscriber::set_global_default(subscriber)
-            .expect("setting default subscriber failed");
-    }
+    let subscriber = FmtSubscriber::builder()
+        .json()
+        .with_max_level(level)
+        .with_thread_ids(true)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
     debug!("Tracing initialised.");
 }
