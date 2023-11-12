@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.0](https://github.com/marccarre/ssh-to-ansible/releases/tag/0.3.0) - 2023-11-12
+
+- Added support for `ansible_ssh_extra_args` and `ansible_ssh_common_args` ([#5](https://github.com/marccarre/ssh-to-ansible/pull/5)).
+- Removed the `--debug` CLI flag and the logic behind this flag. ([#6](https://github.com/marccarre/ssh-to-ansible/pull/6)).
+
 ## [0.2.0](https://github.com/marccarre/ssh-to-ansible/releases/tag/0.2.0) - 2023-11-11
 
 - Added the ability to read SSH configuration from either `stdin` (default) or
