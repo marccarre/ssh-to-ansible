@@ -11,6 +11,22 @@
 
 A tool to convert a SSH configuration to an Ansible YAML inventory.
 
+## Installation
+
+```console
+brew install marccarre/homebrew-ssh-to-ansible/s2a
+```
+
+Or
+
+```console
+brew tap marccarre/homebrew-ssh-to-ansible
+brew install s2a
+```
+
+Or download from the [release](https://github.com/marccarre/ssh-to-ansible/releases)
+page and install manually at your convenience.
+
 ## Usage
 
 Provide any SSH configuration as an input to `s2a`, either via `stdin` or as an
