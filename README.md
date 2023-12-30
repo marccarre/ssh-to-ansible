@@ -239,6 +239,9 @@ cargo publish --dry-run
 cargo publish
 ```
 
+Then update the Homebrew Tap at:
+<https://github.com/marccarre/homebrew-ssh-to-ansible>
+
 N.B.: in case of release job failure, and a re-release, the tag can be deleted
 this way (warning: bad practice to delete tags):
 
