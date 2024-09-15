@@ -130,7 +130,7 @@ mod tests {
             "--var",
             "num_workers:4",
             "--var",
-            "pi:3.14",
+            "pi:1.23",
             "--var",
             "swap_size:3G",
             "--var",
@@ -141,7 +141,7 @@ mod tests {
         let vars = args.vars.unwrap();
         assert_eq!(vars.len(), 5);
 
-        let (key1, value1) = vars.clone().into_iter().nth(0).unwrap();
+        let (key1, value1) = vars.clone().into_iter().next().unwrap();
         assert_eq!(key1, "become");
         assert_eq!(value1, ValueType::Bool(true));
 
@@ -151,7 +151,7 @@ mod tests {
 
         let (key3, value3) = vars.clone().into_iter().nth(2).unwrap();
         assert_eq!(key3, "pi");
-        assert_eq!(value3, ValueType::Float64(3.14));
+        assert_eq!(value3, ValueType::Float64(1.23));
 
         let (key4, value4) = vars.clone().into_iter().nth(3).unwrap();
         assert_eq!(key4, "swap_size");

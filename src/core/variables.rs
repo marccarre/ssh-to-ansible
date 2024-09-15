@@ -66,7 +66,7 @@ mod tests {
     #[case::parse_zero("0", ValueType::Int64(0))]
     #[case::parse_one("1", ValueType::Int64(1))]
     #[case::parse_minus_one("-1", ValueType::Int64(-1))]
-    #[case::parse_pi("3.14", ValueType::Float64(3.14))]
+    #[case::parse_pi("1.23", ValueType::Float64(1.23))]
     #[case::parse_unit("3G", ValueType::String("3G".to_string()))]
     #[case::parse_user("root", ValueType::String("root".to_string()))]
     #[case::parse_port_as_single_quoted_str("'22'", ValueType::String("22".to_string()))]
@@ -86,7 +86,7 @@ mod tests {
     // Given:
     #[case::serialize_bool(ValueType::Bool(true), "true")]
     #[case::serialize_int(ValueType::Int64(1337), "1337")]
-    #[case::serialize_float(ValueType::Float64(3.14), "3.14")]
+    #[case::serialize_float(ValueType::Float64(1.23), "1.23")]
     #[case::serialize_str(ValueType::String("foo".to_string()), "foo")]
     #[case::serialize_int_as_str(ValueType::String("22".to_string()), "'22'")]
     fn serialize_to_yaml(
