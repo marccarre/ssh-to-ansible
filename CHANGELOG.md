@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.0](https://github.com/marccarre/ssh-to-ansible/releases/tag/0.4.0) - 2024-09-15
+
+- Added support for optional, repeatable `--var` CLI argument in order to add
+  `vars` in the generated Ansible inventory. ([#8](https://github.com/marccarre/ssh-to-ansible/pull/8)).
+
 ## [0.3.0](https://github.com/marccarre/ssh-to-ansible/releases/tag/0.3.0) - 2023-11-12
 
 - Added support for `ansible_ssh_extra_args` and `ansible_ssh_common_args` ([#5](https://github.com/marccarre/ssh-to-ansible/pull/5)).
