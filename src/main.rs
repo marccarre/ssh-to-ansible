@@ -17,7 +17,7 @@ fn main() -> Result<(), AppError> {
     args.validate()?;
     let mut input = args.input()?;
     let mut output = args.output()?;
-    parse_and_serialise_as_yaml(&args.environment, &mut input, &mut output)?;
+    parse_and_serialise_as_yaml(&args.environment, &args.vars, &mut input, &mut output)?;
     info!("That's all folks! 👋🏻😊");
     Ok(())
 }
@@ -25,7 +25,8 @@ fn main() -> Result<(), AppError> {
 #[cfg(test)]
 mod tests {
     use crate::common::testing::utilities::{
-        read_file, sample_ansible_inventory, temp_file, temp_filepath, SAMPLE_SSH_CONFIG,
+        read_file, sample_ansible_inventory, sample_ansible_inventory_with_vars, temp_file,
+        temp_filepath, SAMPLE_SSH_CONFIG,
     };
     use assert_cmd::Command;
     use predicates::ord::eq;
@@ -63,6 +64,31 @@ mod tests {
             .success()
             .code(eq(0))
             .stdout(eq(sample_ansible_inventory(environment)));
+    }
+
+    #[test]
+    fn s2a_read_stdin_write_stdout_with_vars() {
+        // Given:
+        let mut cmd = Command::cargo_bin("s2a").unwrap();
+
+        // When:
+        let assert = cmd
+            .arg("--var")
+            .arg("become:true")
+            .arg("--var")
+            .arg("http_port:'8080'")
+            .arg("--var")
+            .arg("num_workers:4")
+            .arg("--var")
+            .arg("swap_size:3G")
+            .write_stdin(SAMPLE_SSH_CONFIG)
+            .assert();
+
+        // Then:
+        assert
+            .success()
+            .code(eq(0))
+            .stdout(eq(sample_ansible_inventory_with_vars("local")));
     }
 
     #[test]

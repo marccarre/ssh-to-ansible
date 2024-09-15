@@ -1,4 +1,5 @@
 use crate::core::ssh_config::{Field, SshConfig};
+use crate::core::variables::ValueType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use tracing::debug;
@@ -10,9 +11,13 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn new(name: &str, ssh_configs: &[SshConfig]) -> Inventory {
+    pub fn new(
+        name: &str,
+        ssh_configs: &[SshConfig],
+        vars: &Option<Vec<(String, ValueType)>>,
+    ) -> Inventory {
         Inventory {
-            groups: BTreeMap::from([(name.to_owned(), Hosts::new(ssh_configs))]),
+            groups: BTreeMap::from([(name.to_owned(), Hosts::new(ssh_configs, vars))]),
         }
     }
 }
@@ -20,15 +25,20 @@ impl Inventory {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Hosts {
     hosts: BTreeMap<String, HostParams>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    vars: Option<BTreeMap<String, ValueType>>,
 }
 
 impl Hosts {
-    pub fn new(ssh_configs: &[SshConfig]) -> Hosts {
+    pub fn new(ssh_configs: &[SshConfig], vars: &Option<Vec<(String, ValueType)>>) -> Hosts {
         Hosts {
             hosts: ssh_configs
                 .iter()
                 .map(|ssh_config| (ssh_config.host.to_owned(), HostParams::new(ssh_config)))
                 .collect::<BTreeMap<String, HostParams>>(),
+            vars: vars
+                .clone()
+                .map(|vec| vec.into_iter().collect::<BTreeMap<String, ValueType>>()),
         }
     }
 }
@@ -98,7 +108,10 @@ impl HostParams {
 #[cfg(test)]
 mod tests {
     use super::{HostParams, Inventory};
-    use crate::core::ssh_config::{Field, SshConfig};
+    use crate::core::{
+        ssh_config::{Field, SshConfig},
+        variables::ValueType,
+    };
     use serde_yaml;
     use std::collections::BTreeMap;
 
@@ -147,7 +160,16 @@ mod tests {
             ]),
         };
         let ssh_configs = Vec::from([ssh_config]);
-        let inventory = Inventory::new("local", &ssh_configs);
+        let vars = Some(Vec::from([
+            ("become".to_string(), ValueType::Bool(true)),
+            (
+                "http_port".to_string(),
+                ValueType::String("8080".to_string()),
+            ),
+            ("num_workers".to_string(), ValueType::Int64(4)),
+            ("swap_size".to_string(), ValueType::String("3G".to_string())),
+        ]));
+        let inventory = Inventory::new("local", &ssh_configs, &vars);
 
         // When:
         let yaml = serde_yaml::to_string(&inventory)?;
@@ -163,6 +185,11 @@ mod tests {
       ansible_user: vagrant
       ansible_ssh_private_key_file: /path/to/private_key
       ansible_ssh_extra_args: -o PasswordAuthentication=no -o StrictHostKeyChecking=no
+  vars:
+    become: true
+    http_port: '8080'
+    num_workers: 4
+    swap_size: 3G
 "#
         );
         Ok(())
