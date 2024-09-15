@@ -32,6 +32,25 @@ pub mod utilities {
         )
     }
 
+    pub fn sample_ansible_inventory_with_vars(environment: &str) -> String {
+        format!(
+            r#"{environment}:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /path/to/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+  vars:
+    become: true
+    http_port: '8080'
+    num_workers: 4
+    swap_size: 3G
+"#
+        )
+    }
+
     pub fn temp_file(filename: &str, content: &str) -> Result<(TempDir, PathBuf), std::io::Error> {
         let (dir, input_filepath) = temp_filepath(filename)?;
         let mut input_file = File::create(&input_filepath)?;

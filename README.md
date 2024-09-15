@@ -103,6 +103,43 @@ dev:
 ```
 <!-- markdownlint-enable MD013 -->
 
+#### Configure `vars` in the Ansible inventory
+
+Provide colon-separated `key:value` pairs using the `--var` CLI option:
+
+<!-- markdownlint-disable MD013 -->
+```console
+$ cat <<EOF | ./s2a --var become:true --var http_port:"'8080'" --var num_workers:4 --var user:root
+Host default
+  HostName 127.0.0.1
+  User vagrant
+  Port 50022
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /Users/me/.vagrant/machines/default/qemu/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+  PubkeyAcceptedKeyTypes +ssh-rsa
+  HostKeyAlgorithms +ssh-rsa
+EOF
+
+local:
+  hosts:
+    default:
+      ansible_host: 127.0.0.1
+      ansible_port: 50022
+      ansible_user: vagrant
+      ansible_ssh_private_key_file: /Users/me/.vagrant/machines/default/qemu/private_key
+      ansible_ssh_extra_args: -o HostKeyAlgorithms=+ssh-rsa -o IdentitiesOnly=yes -o LogLevel=FATAL -o PasswordAuthentication=no -o PubkeyAcceptedKeyTypes=+ssh-rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+  vars:
+    become: true
+    http_port: '8080'
+    num_workers: 4
+    user: root
+```
+<!-- markdownlint-enable MD013 -->
+
 #### Read from input file instead of `stdin`
 
 <!-- markdownlint-disable MD013 -->
@@ -177,11 +214,13 @@ Usage: s2a [OPTIONS]
 
 Options:
   -v, --verbose...
-          More output per occurrence
+          Increase logging verbosity
   -q, --quiet...
-          Less output per occurrence
+          Decrease logging verbosity
   -e, --environment <ENVIRONMENT>
           Name of the environment to generate [default: local]
+      --var <VARS>
+          Ansible variables to add to the hosts, as colon-separated name:value pair, e.g., --var new_ssh_port:22222 --var swap_size:3G
   -i, --input-filepath <INPUT_FILEPATH>
           Path of the input SSH configuration to parse [default: stdin]
   -o, --output-filepath <OUTPUT_FILEPATH>
